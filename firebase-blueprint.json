@@ -1,0 +1,123 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User garden profile and preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "gardenName": { "type": "string", "maxLength": 100 },
+        "region": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "email"]
+    },
+    "Plot": {
+      "title": "Plot",
+      "description": "Garden plot, raised bed, row, or container",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "shape": { "type": "string", "maxLength": 30 },
+        "widthMeters": { "type": "number" },
+        "lengthMeters": { "type": "number" },
+        "sunExposure": { "type": "string", "maxLength": 30 },
+        "soilType": { "type": "string", "maxLength": 50 },
+        "color": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "name"]
+    },
+    "Planting": {
+      "title": "Planting",
+      "description": "A planted crop or flower in a plot with tracking status",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "plotId": { "type": "string", "maxLength": 128 },
+        "plantName": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "maxLength": 50 },
+        "variety": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "maxLength": 30 },
+        "quantity": { "type": "number" },
+        "dateSown": { "type": "string", "maxLength": 30 },
+        "datePlanted": { "type": "string", "maxLength": 30 },
+        "expectedHarvestDate": { "type": "string", "maxLength": 30 },
+        "wateringFrequencyDays": { "type": "number" },
+        "lastWatered": { "type": "string", "maxLength": 30 },
+        "companionGood": { "type": "string", "maxLength": 300 },
+        "companionBad": { "type": "string", "maxLength": 300 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "plotId", "plantName", "status"]
+    },
+    "Harvest": {
+      "title": "Harvest",
+      "description": "Harvest record with yield weight and quality rating",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "plantingId": { "type": "string", "maxLength": 128 },
+        "plantName": { "type": "string", "maxLength": 100 },
+        "plotId": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 30 },
+        "weightKg": { "type": "number" },
+        "quantityCount": { "type": "number" },
+        "qualityRating": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "plantingId", "plantName", "date"]
+    },
+    "GardenTask": {
+      "title": "GardenTask",
+      "description": "Gardening todo item, watering or maintenance task",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 30 },
+        "dueDate": { "type": "string", "maxLength": 30 },
+        "plotId": { "type": "string", "maxLength": 128 },
+        "plantingId": { "type": "string", "maxLength": 128 },
+        "completed": { "type": "boolean" },
+        "completedAt": { "type": "string", "maxLength": 64 },
+        "priority": { "type": "string", "maxLength": 20 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "title", "completed"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User garden profile data and settings"
+    },
+    "/plots/{plotId}": {
+      "schema": { "$ref": "#/entities/Plot" },
+      "description": "Plots and zones in the garden"
+    },
+    "/plantings/{plantingId}": {
+      "schema": { "$ref": "#/entities/Planting" },
+      "description": "Crops and plants tracked in the garden"
+    },
+    "/harvests/{harvestId}": {
+      "schema": { "$ref": "#/entities/Harvest" },
+      "description": "Harvest logs and yields"
+    },
+    "/gardenTasks/{taskId}": {
+      "schema": { "$ref": "#/entities/GardenTask" },
+      "description": "Gardening tasks, watering reminders, and chores"
+    }
+  }
+}

@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Users Collection ---
+    function isValidUser(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('gardenName' in data) || (data.gardenName is string && data.gardenName.size() <= 100)) &&
+             (!('region' in data) || (data.region is string && data.region.size() <= 100));
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       isValidUser(incoming());
+      allow update: if isSignedIn() && request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == request.auth.uid &&
+                       isValidUser(incoming());
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- Plots Collection ---
+    function isValidPlot(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             (!('shape' in data) || (data.shape is string && data.shape.size() <= 30)) &&
+             (!('sunExposure' in data) || (data.sunExposure is string && data.sunExposure.size() <= 30)) &&
+             (!('soilType' in data) || (data.soilType is string && data.soilType.size() <= 50)) &&
+             (!('color' in data) || (data.color is string && data.color.size() <= 30)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    match /plots/{plotId} {
+      allow get: if isSignedIn() && isValidId(plotId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(plotId) &&
+                       incoming().userId == request.auth.uid &&
+                       isValidPlot(incoming());
+      allow update: if isSignedIn() && isValidId(plotId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       isValidPlot(incoming());
+      allow delete: if isSignedIn() && isValidId(plotId) && existing().userId == request.auth.uid;
+    }
+
+    // --- Plantings Collection ---
+    function isValidPlanting(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.plotId is string && data.plotId.size() <= 128 &&
+             data.plantName is string && data.plantName.size() > 0 && data.plantName.size() <= 100 &&
+             data.status is string && data.status.size() <= 30 &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 50)) &&
+             (!('variety' in data) || (data.variety is string && data.variety.size() <= 100)) &&
+             (!('dateSown' in data) || (data.dateSown is string && data.dateSown.size() <= 30)) &&
+             (!('datePlanted' in data) || (data.datePlanted is string && data.datePlanted.size() <= 30)) &&
+             (!('expectedHarvestDate' in data) || (data.expectedHarvestDate is string && data.expectedHarvestDate.size() <= 30)) &&
+             (!('lastWatered' in data) || (data.lastWatered is string && data.lastWatered.size() <= 30)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    match /plantings/{plantingId} {
+      allow get: if isSignedIn() && isValidId(plantingId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(plantingId) &&
+                       incoming().userId == request.auth.uid &&
+                       isValidPlanting(incoming());
+      allow update: if isSignedIn() && isValidId(plantingId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       isValidPlanting(incoming());
+      allow delete: if isSignedIn() && isValidId(plantingId) && existing().userId == request.auth.uid;
+    }
+
+    // --- Harvests Collection ---
+    function isValidHarvest(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.plantingId is string && data.plantingId.size() <= 128 &&
+             data.plantName is string && data.plantName.size() > 0 && data.plantName.size() <= 100 &&
+             data.date is string && data.date.size() <= 30 &&
+             (!('plotId' in data) || (data.plotId is string && data.plotId.size() <= 128)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    match /harvests/{harvestId} {
+      allow get: if isSignedIn() && isValidId(harvestId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(harvestId) &&
+                       incoming().userId == request.auth.uid &&
+                       isValidHarvest(incoming());
+      allow update: if isSignedIn() && isValidId(harvestId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       isValidHarvest(incoming());
+      allow delete: if isSignedIn() && isValidId(harvestId) && existing().userId == request.auth.uid;
+    }
+
+    // --- Garden Tasks Collection ---
+    function isValidGardenTask(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.completed is bool &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 30)) &&
+             (!('dueDate' in data) || (data.dueDate is string && data.dueDate.size() <= 30)) &&
+             (!('plotId' in data) || (data.plotId is string && data.plotId.size() <= 128)) &&
+             (!('plantingId' in data) || (data.plantingId is string && data.plantingId.size() <= 128)) &&
+             (!('priority' in data) || (data.priority is string && data.priority.size() <= 20)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    match /gardenTasks/{taskId} {
+      allow get: if isSignedIn() && isValidId(taskId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(taskId) &&
+                       incoming().userId == request.auth.uid &&
+                       isValidGardenTask(incoming());
+      allow update: if isSignedIn() && isValidId(taskId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       isValidGardenTask(incoming());
+      allow delete: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid;
+    }
+  }
+}
